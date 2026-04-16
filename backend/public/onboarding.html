@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurar consultorio — TurnoOdonto</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:      #3dbfb8;
+      --teal-dark: #2a9e97;
+      --teal-glow: rgba(61,191,184,.18);
+      --dark:      #0f1f1e;
+      --mid:       #1a3330;
+      --surface:   #152825;
+      --border:    rgba(61,191,184,.22);
+      --text:      #e8f4f3;
+      --muted:     #7aaba8;
+      --error:     #f87171;
+      --success:   #4ade80;
+    }
+
+    html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--dark); color: var(--text); }
+
+    body {
+      min-height: 100vh;
+      padding: 32px 16px 48px;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(61,191,184,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 90%, rgba(61,191,184,.06) 0%, transparent 60%),
+        var(--dark);
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .top-bar {
+      max-width: 640px; margin: 0 auto 32px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 20px; height: 20px; fill: white; }
+    .top-bar h1 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.1rem; }
+    .top-bar h1 em { font-style: italic; color: var(--teal); }
+
+    /* ── Stepper ─────────────────────────────────── */
+    .stepper {
+      max-width: 640px; margin: 0 auto 28px;
+      display: flex; align-items: center; gap: 0;
+    }
+    .step-item {
+      display: flex; align-items: center; flex: 1;
+    }
+    .step-item:last-child { flex: none; }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 700; color: var(--muted);
+      flex-shrink: 0; transition: all .3s; background: var(--dark);
+      position: relative; z-index: 1;
+    }
+    .step-dot.active   { border-color: var(--teal); color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+    .step-dot.done     { border-color: var(--teal); background: var(--teal); color: white; }
+    .step-line {
+      flex: 1; height: 2px;
+      background: var(--border);
+      margin: 0 4px; transition: background .3s;
+    }
+    .step-line.done { background: var(--teal); }
+    .step-label {
+      font-size: .65rem; font-weight: 600; color: var(--muted);
+      text-align: center; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em;
+    }
+    .step-label.active { color: var(--teal); }
+    .stepper-wrapper { max-width: 640px; margin: 0 auto 28px; }
+    .stepper-labels { display: flex; justify-content: space-between; margin-top: 6px; }
+    .stepper-labels span { flex: 1; text-align: center; font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .stepper-labels span.active { color: var(--teal); font-weight: 600; }
+
+    /* ── Card ────────────────────────────────────── */
+    .card {
+      max-width: 640px; margin: 0 auto;
+      background: rgba(21,40,37,.85);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 40px 32px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 32px 80px rgba(0,0,0,.4);
+    }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-header { margin-bottom: 28px; }
+    .step-header h2 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.4rem; }
+    .step-header h2 em { font-style: italic; color: var(--teal); }
+    .step-header p { margin-top: 6px; font-size: .85rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── Form elements ───────────────────────────── */
+    .form-row { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+    .form-row.single { grid-template-columns: 1fr; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: .72rem; font-weight: 600;
+      color: var(--muted); letter-spacing: .06em; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .form-group label .req { color: var(--teal); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      background: rgba(10,24,23,.75);
+      border: 1px solid rgba(61,191,184,.3);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: inherit; font-size: .88rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(122,171,168,.4); }
+    .form-group input.error { border-color: var(--error); }
+    .form-group .hint { margin-top: 5px; font-size: .75rem; color: var(--muted); }
+    .form-group .hint.ok { color: var(--success); }
+    .form-group .hint.err { color: var(--error); }
+
+    .slug-preview {
+      margin-top: 5px; font-size: .75rem; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .slug-preview .url { color: var(--teal); font-family: monospace; font-size: .78rem; }
+
+    /* ── Horarios grid ───────────────────────────── */
+    .days-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .day-row {
+      display: grid; grid-template-columns: 90px 1fr; gap: 12px;
+      align-items: center; padding: 12px 14px;
+      background: rgba(10,24,23,.5);
+      border: 1px solid var(--border);
+      border-radius: 10px; transition: border-color .2s;
+    }
+    .day-row.active { border-color: rgba(61,191,184,.4); }
+    .day-check { display: flex; align-items: center; gap: 8px; }
+    .day-check input[type=checkbox] { accent-color: var(--teal); width: 16px; height: 16px; cursor: pointer; }
+    .day-check label { font-size: .85rem; font-weight: 600; cursor: pointer; user-select: none; }
+    .day-ranges { display: flex; flex-direction: column; gap: 6px; }
+    .time-range { display: flex; align-items: center; gap: 8px; }
+    .time-range input[type=time] {
+      background: rgba(10,24,23,.7); border: 1px solid rgba(61,191,184,.25);
+      border-radius: 7px; padding: 6px 10px; color: var(--text);
+      font-family: inherit; font-size: .82rem; width: 110px;
+      color-scheme: dark;
+    }
+    .time-range span { font-size: .78rem; color: var(--muted); }
+    .btn-add-range {
+      background: none; border: 1px dashed var(--border);
+      border-radius: 7px; padding: 4px 10px;
+      color: var(--teal); font-size: .75rem; cursor: pointer;
+      transition: border-color .2s;
+    }
+    .btn-add-range:hover { border-color: var(--teal); }
+    .btn-remove-range {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: .9rem; padding: 0 2px;
+      transition: color .2s;
+    }
+    .btn-remove-range:hover { color: var(--error); }
+    .day-closed { font-size: .78rem; color: rgba(122,171,168,.4); font-style: italic; display: none; }
+
+    /* ── Servicios ───────────────────────────────── */
+    .services-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .service-item {
+      display: grid; grid-template-columns: 1fr 100px 80px 32px;
+      gap: 8px; align-items: center;
+      padding: 10px 12px;
+      background: rgba(10,24,23,.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .service-item input {
+      background: rgba(10,24,23,.7); border: 1px solid rgba(61,191,184,.2);
+      border-radius: 7px; padding: 7px 10px; color: var(--text);
+      font-family: inherit; font-size: .82rem;
+    }
+    .service-item input:focus { border-color: var(--teal); outline: none; }
+    .service-item input::placeholder { color: rgba(122,171,168,.4); }
+    .service-item .col-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .btn-del-service {
+      background: none; border: none; cursor: pointer;
+      color: rgba(248,113,113,.5); font-size: 1rem; padding: 0;
+      transition: color .2s;
+    }
+    .btn-del-service:hover { color: var(--error); }
+    .service-headers {
+      display: grid; grid-template-columns: 1fr 100px 80px 32px;
+      gap: 8px; padding: 0 12px; margin-bottom: -4px;
+    }
+    .service-headers span { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .btn-add-service {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: 1px dashed var(--border);
+      border-radius: 10px; padding: 10px 14px;
+      color: var(--teal); font-size: .82rem; cursor: pointer;
+      transition: border-color .2s; width: 100%;
+    }
+    .btn-add-service:hover { border-color: var(--teal); }
+
+    /* ── Checkboxes ──────────────────────────────── */
+    .checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .checkbox-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: rgba(10,24,23,.6);
+      border: 1px solid var(--border);
+      border-radius: 20px; cursor: pointer; user-select: none;
+      font-size: .8rem; transition: all .2s;
+    }
+    .checkbox-chip input[type=checkbox] { display: none; }
+    .checkbox-chip.checked { background: rgba(61,191,184,.15); border-color: rgba(61,191,184,.5); color: var(--teal); }
+
+    .range-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
+    .range-option {
+      padding: 12px; text-align: center;
+      background: rgba(10,24,23,.5);
+      border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: all .2s;
+    }
+    .range-option.selected { background: rgba(61,191,184,.15); border-color: rgba(61,191,184,.5); }
+    .range-option .val { font-size: 1.1rem; font-weight: 700; color: var(--teal); }
+    .range-option .lbl { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Telegram ────────────────────────────────── */
+    .instructions-box {
+      background: rgba(10,24,23,.6); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 20px;
+    }
+    .instructions-box ol { padding-left: 18px; }
+    .instructions-box li { font-size: .83rem; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+    .instructions-box li strong { color: var(--text); }
+    .instructions-box li code {
+      background: rgba(61,191,184,.12); color: var(--teal);
+      padding: 1px 6px; border-radius: 4px; font-size: .82rem;
+    }
+    .token-row { display: flex; gap: 10px; }
+    .token-row input { flex: 1; }
+    .btn-validate {
+      padding: 11px 18px;
+      background: rgba(61,191,184,.15); border: 1px solid rgba(61,191,184,.4);
+      border-radius: 10px; color: var(--teal); font-family: inherit;
+      font-size: .85rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: all .2s; flex-shrink: 0;
+    }
+    .btn-validate:hover { background: rgba(61,191,184,.25); }
+    .bot-status {
+      margin-top: 10px; padding: 10px 14px;
+      border-radius: 8px; font-size: .82rem; display: none;
+    }
+    .bot-status.ok   { background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.3); color: var(--success); display: block; }
+    .bot-status.fail { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: var(--error); display: block; }
+    .skip-link {
+      text-align: center; margin-top: 12px;
+      font-size: .8rem; color: var(--muted);
+    }
+    .skip-link a { color: var(--muted); text-decoration: underline; cursor: pointer; }
+    .skip-link a:hover { color: var(--teal); }
+
+    /* ── Acciones ────────────────────────────────── */
+    .actions {
+      display: flex; gap: 12px; margin-top: 28px;
+      padding-top: 24px; border-top: 1px solid var(--border);
+    }
+    .btn-back {
+      padding: 12px 20px; background: none;
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--muted); font-family: inherit; font-size: .88rem;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-back:hover { border-color: var(--muted); color: var(--text); }
+    .btn-next {
+      flex: 1; padding: 12px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+      color: white; border: none; border-radius: 10px;
+      font-family: inherit; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s;
+      position: relative;
+    }
+    .btn-next:hover:not(:disabled) { opacity: .9; }
+    .btn-next:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-next.loading .btn-text { opacity: 0; }
+    .btn-next.loading::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='10' stroke='white' stroke-width='2' stroke-dasharray='40' stroke-dashoffset='10'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E") center/20px no-repeat;
+    }
+
+    .error-banner {
+      background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .82rem; color: var(--error);
+      margin-bottom: 20px; display: none;
+    }
+    .error-banner.visible { display: block; }
+
+    @media (max-width: 520px) {
+      .card { padding: 28px 20px 24px; }
+      .form-row { grid-template-columns: 1fr; }
+      .service-item { grid-template-columns: 1fr 80px 70px 28px; }
+      .range-group { grid-template-columns: 1fr; }
+      .token-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+  </div>
+  <h1>Configurá tu <em>consultorio</em></h1>
+</div>
+
+<!-- Stepper -->
+<div class="stepper-wrapper">
+  <div class="stepper" id="stepper">
+    <div class="step-item">
+      <div class="step-dot active" data-step="1">1</div>
+      <div class="step-line" data-line="1"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" data-step="2">2</div>
+      <div class="step-line" data-line="2"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" data-step="3">3</div>
+      <div class="step-line" data-line="3"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" data-step="4">4</div>
+      <div class="step-line" data-line="4"></div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" data-step="5">5</div>
+    </div>
+  </div>
+  <div class="stepper-labels">
+    <span class="active">Identidad</span>
+    <span>Horarios</span>
+    <span>Servicios</span>
+    <span>Políticas</span>
+    <span>Telegram</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- ═══ Step 1: Identidad ════════════════════════ -->
+  <div class="step-panel active" id="step-1">
+    <div class="step-header">
+      <h2>Tu <em>identidad</em> profesional</h2>
+      <p>Estos datos aparecen en tu página de turnos y en el panel.</p>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre completo <span class="req">*</span></label>
+        <input type="text" id="s1-name" placeholder="Od. Juan Pérez" />
+      </div>
+      <div class="form-group">
+        <label>Matrícula</label>
+        <input type="text" id="s1-matricula" placeholder="M.P. 12345" />
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>Identificador (slug) <span class="req">*</span></label>
+        <input type="text" id="s1-slug" placeholder="juan-perez" autocomplete="off" />
+        <div class="slug-preview">
+          Tu URL: <span class="url" id="slug-url">turno.app/c/<em>tu-slug</em></span>
+        </div>
+        <div class="hint" id="slug-hint"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="s1-tel" placeholder="+54 351 123-4567" />
+      </div>
+      <div class="form-group">
+        <label>Instagram</label>
+        <input type="text" id="s1-ig" placeholder="@od.juanperez" />
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group">
+        <label>Ubicación / dirección</label>
+        <input type="text" id="s1-ubicacion" placeholder="Rivadavia 450, Córdoba" />
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-next" id="s1-next" onclick="goStep1()">
+        <span class="btn-text">Continuar →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Step 2: Horarios ═════════════════════════ -->
+  <div class="step-panel" id="step-2">
+    <div class="step-header">
+      <h2>Días y <em>horarios</em></h2>
+      <p>Configurá cuándo atendés. Podés tener mañana y tarde por separado.</p>
+    </div>
+
+    <div class="days-grid" id="days-grid">
+      <!-- Se genera por JS -->
+    </div>
+
+    <div class="actions">
+      <button class="btn-back" onclick="goTo(1)">← Atrás</button>
+      <button class="btn-next" onclick="goStep2()">
+        <span class="btn-text">Continuar →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Step 3: Servicios ════════════════════════ -->
+  <div class="step-panel" id="step-3">
+    <div class="step-header">
+      <h2><em>Servicios</em> que ofrecés</h2>
+      <p>Agregá los tratamientos con precio y duración aproximada.</p>
+    </div>
+
+    <div class="service-headers">
+      <span>Servicio</span>
+      <span>Precio ($)</span>
+      <span>Duración</span>
+      <span></span>
+    </div>
+    <div class="services-list" id="services-list"></div>
+    <button class="btn-add-service" onclick="addService()">
+      <span style="font-size:1.1rem">+</span> Agregar servicio
+    </button>
+
+    <div class="actions">
+      <button class="btn-back" onclick="goTo(2)">← Atrás</button>
+      <button class="btn-next" onclick="goStep3()">
+        <span class="btn-text">Continuar →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Step 4: Políticas ════════════════════════ -->
+  <div class="step-panel" id="step-4">
+    <div class="step-header">
+      <h2>Reglas del <em>consultorio</em></h2>
+      <p>Configurá obras sociales, medios de pago y políticas de turnos.</p>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Duración del turno</label>
+      <div class="range-group" id="slot-options">
+        <div class="range-option" data-val="30" onclick="selectOption('slot',this)">
+          <div class="val">30</div><div class="lbl">minutos</div>
+        </div>
+        <div class="range-option selected" data-val="45" onclick="selectOption('slot',this)">
+          <div class="val">45</div><div class="lbl">minutos</div>
+        </div>
+        <div class="range-option" data-val="60" onclick="selectOption('slot',this)">
+          <div class="val">60</div><div class="lbl">minutos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Anticipación mínima para reservar</label>
+      <div class="range-group" id="advance-options">
+        <div class="range-option" data-val="2" onclick="selectOption('advance',this)">
+          <div class="val">2</div><div class="lbl">horas</div>
+        </div>
+        <div class="range-option selected" data-val="24" onclick="selectOption('advance',this)">
+          <div class="val">24</div><div class="lbl">horas</div>
+        </div>
+        <div class="range-option" data-val="48" onclick="selectOption('advance',this)">
+          <div class="val">48</div><div class="lbl">horas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Máximo de turnos por día</label>
+      <div class="range-group" id="max-options">
+        <div class="range-option" data-val="8" onclick="selectOption('max',this)">
+          <div class="val">8</div><div class="lbl">turnos</div>
+        </div>
+        <div class="range-option selected" data-val="12" onclick="selectOption('max',this)">
+          <div class="val">12</div><div class="lbl">turnos</div>
+        </div>
+        <div class="range-option" data-val="16" onclick="selectOption('max',this)">
+          <div class="val">16</div><div class="lbl">turnos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px">
+      <label>Obras sociales que aceptás</label>
+      <div class="checkbox-grid" id="os-chips">
+        <!-- generado por JS -->
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Medios de pago</label>
+      <div class="checkbox-grid" id="mp-chips">
+        <!-- generado por JS -->
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-back" onclick="goTo(3)">← Atrás</button>
+      <button class="btn-next" onclick="goStep4()">
+        <span class="btn-text">Continuar →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Step 5: Telegram ═════════════════════════ -->
+  <div class="step-panel" id="step-5">
+    <div class="step-header">
+      <h2>Tu bot de <em>Telegram</em></h2>
+      <p>El bot responde consultas de pacientes y envía el link para reservar turnos.</p>
+    </div>
+
+    <div class="instructions-box">
+      <ol>
+        <li>Abrí Telegram y buscá <strong>@BotFather</strong></li>
+        <li>Enviá el comando <code>/newbot</code></li>
+        <li>Elegí un nombre (ej: <strong>Consultorio Pérez</strong>) y un username (ej: <strong>consultorioperez_bot</strong>)</li>
+        <li>BotFather te dará un token. Copialo y pegalo acá abajo.</li>
+      </ol>
+    </div>
+
+    <div class="form-group">
+      <label>Token del bot</label>
+      <div class="token-row">
+        <input type="text" id="s5-token" placeholder="1234567890:AAHxxx..." autocomplete="off" spellcheck="false" />
+        <button class="btn-validate" id="btn-validate-tg" onclick="validateToken()">Verificar</button>
+      </div>
+      <div class="bot-status" id="bot-status"></div>
+    </div>
+
+    <div class="skip-link">
+      <a onclick="skipTelegram()">Omitir este paso por ahora</a>
+    </div>
+
+    <div class="actions">
+      <button class="btn-back" onclick="goTo(4)">← Atrás</button>
+      <button class="btn-next" id="s5-finish" onclick="finishOnboarding()">
+        <span class="btn-text">Ir al panel →</span>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /card -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const BACKEND = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? '' : 'https://worthy-tenderness-production-2989.up.railway.app';
+
+  const sb = window.supabase.createClient(
+    'https://qerjqgybyjvcoxqnjybw.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcmpxZ3lieWp2Y294cW5qeWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzk5MTIsImV4cCI6MjA5MTg1NTkxMn0.WLx45VB9hjda4Xq7usxGx_VvqTGDQdxvt6lN8Q23TMU'
+  );
+
+  let _session = null;
+  let _clinicId = null;
+  let _clinicSlug = null;
+  let currentStep = 1;
+  let slugOk = false;
+  let validatedToken = null;
+
+  // Estado de políticas
+  const policies = { slot: 45, advance: 24, max: 12, os: new Set(), mp: new Set() };
+
+  // ── Auth guard ────────────────────────────────
+  sb.auth.getSession().then(async ({ data }) => {
+    if (!data.session) { window.location.replace('/login.html'); return; }
+    _session = data.session;
+
+    // Si ya tiene clínica, cargar datos
+    try {
+      const { clinic } = await apiFetch('/api/me');
+      if (clinic) {
+        _clinicId   = clinic.id;
+        _clinicSlug = clinic.slug;
+        if (clinic.onboarding_completed) { window.location.replace('/dashboard.html'); return; }
+        prefillFromClinic(clinic);
+      }
+    } catch { /* primera vez */ }
+  });
+
+  function authHeader() {
+    return _session?.access_token ? { 'Authorization': `Bearer ${_session.access_token}` } : {};
+  }
+
+  async function apiFetch(path, opts = {}) {
+    const r = await fetch(`${BACKEND}${path}`, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', ...authHeader(), ...(opts.headers || {}) },
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${r.status}`);
+    }
+    return r.json();
+  }
+
+  // ── Stepper ───────────────────────────────────
+  function updateStepper(step) {
+    document.querySelectorAll('.step-dot').forEach((dot, i) => {
+      const n = i + 1;
+      dot.classList.remove('active', 'done');
+      if (n < step) dot.classList.add('done'), dot.textContent = '✓';
+      else if (n === step) dot.classList.add('active'), dot.textContent = n;
+      else dot.textContent = n;
+    });
+    document.querySelectorAll('.step-line').forEach((line, i) => {
+      line.classList.toggle('done', i + 1 < step);
+    });
+    document.querySelectorAll('.stepper-labels span').forEach((lbl, i) => {
+      lbl.classList.toggle('active', i + 1 === step);
+    });
+  }
+
+  function goTo(step) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`step-${step}`).classList.add('active');
+    currentStep = step;
+    updateStepper(step);
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    clearError();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = msg;
+    el.classList.add('visible');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearError() {
+    document.getElementById('error-banner').classList.remove('visible');
+  }
+
+  function setLoading(btn, on) {
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+  }
+
+  // ── Prefill desde clínica existente ──────────
+  function prefillFromClinic(c) {
+    if (c.name)      document.getElementById('s1-name').value      = c.name;
+    if (c.slug)      document.getElementById('s1-slug').value      = c.slug;
+    if (c.matricula) document.getElementById('s1-matricula').value = c.matricula;
+    if (c.telefono)  document.getElementById('s1-tel').value       = c.telefono;
+    if (c.instagram) document.getElementById('s1-ig').value        = c.instagram;
+    if (c.ubicacion) document.getElementById('s1-ubicacion').value = c.ubicacion;
+    if (c.slug) updateSlugPreview(c.slug), (slugOk = true);
+    if (c.slot_duration_min) policies.slot    = c.slot_duration_min;
+    if (c.min_advance_hours) policies.advance = c.min_advance_hours;
+    if (c.max_per_day)       policies.max     = c.max_per_day;
+  }
+
+  // ── Step 1: Identidad ─────────────────────────
+  const slugInput = document.getElementById('s1-slug');
+  let slugTimer;
+
+  function updateSlugPreview(val) {
+    document.getElementById('slug-url').innerHTML = `turno.app/c/<strong>${val || '<em>tu-slug</em>'}</strong>`;
+  }
+
+  slugInput.addEventListener('input', () => {
+    clearTimeout(slugTimer);
+    const raw = slugInput.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+    if (slugInput.value !== raw) slugInput.value = raw;
+    updateSlugPreview(raw);
+
+    const hint = document.getElementById('slug-hint');
+    slugOk = false;
+    if (!raw || raw.length < 3) { hint.className = 'hint err'; hint.textContent = 'Mínimo 3 caracteres'; return; }
+
+    hint.className = 'hint'; hint.textContent = 'Verificando…';
+    slugTimer = setTimeout(async () => {
+      try {
+        const data = await apiFetch(`/api/slug-available?slug=${raw}`);
+        if (data.available || raw === _clinicSlug) {
+          hint.className = 'hint ok'; hint.textContent = '✓ Disponible';
+          slugOk = true;
+        } else {
+          hint.className = 'hint err'; hint.textContent = '✗ Ya está en uso';
+          slugOk = false;
+        }
+      } catch { hint.className = 'hint'; hint.textContent = ''; }
+    }, 500);
+  });
+
+  async function goStep1() {
+    const name = document.getElementById('s1-name').value.trim();
+    const slug = document.getElementById('s1-slug').value.trim();
+
+    if (!name) { showError('El nombre es requerido.'); return; }
+    if (!slug || slug.length < 3) { showError('El identificador debe tener al menos 3 caracteres.'); return; }
+    if (!slugOk && slug !== _clinicSlug) { showError('Verificá que el identificador esté disponible.'); return; }
+
+    const btn = document.getElementById('s1-next');
+    setLoading(btn, true);
+    try {
+      const body = {
+        name,
+        slug,
+        matricula: document.getElementById('s1-matricula').value.trim() || null,
+        telefono:  document.getElementById('s1-tel').value.trim() || null,
+        instagram: document.getElementById('s1-ig').value.trim() || null,
+        ubicacion: document.getElementById('s1-ubicacion').value.trim() || null,
+      };
+
+      let data;
+      if (_clinicId) {
+        data = await apiFetch('/api/me/clinic', { method: 'PATCH', body: JSON.stringify(body) });
+      } else {
+        data = await apiFetch('/api/register', { method: 'POST', body: JSON.stringify(body) });
+      }
+      _clinicId   = data.clinic.id;
+      _clinicSlug = data.clinic.slug;
+      goTo(2);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  // ── Step 2: Horarios ──────────────────────────
+  const DAYS = [
+    { dow: 1, label: 'Lunes',     active: true,  ranges: [{ s: '09:00', e: '13:00' }, { s: '16:00', e: '20:00' }] },
+    { dow: 2, label: 'Martes',    active: true,  ranges: [{ s: '09:00', e: '13:00' }, { s: '16:00', e: '20:00' }] },
+    { dow: 3, label: 'Miércoles', active: true,  ranges: [{ s: '09:00', e: '13:00' }] },
+    { dow: 4, label: 'Jueves',    active: true,  ranges: [{ s: '09:00', e: '13:00' }, { s: '16:00', e: '20:00' }] },
+    { dow: 5, label: 'Viernes',   active: true,  ranges: [{ s: '09:00', e: '13:00' }, { s: '16:00', e: '20:00' }] },
+    { dow: 6, label: 'Sábado',    active: false, ranges: [{ s: '09:00', e: '13:00' }] },
+    { dow: 0, label: 'Domingo',   active: false, ranges: [{ s: '09:00', e: '13:00' }] },
+  ];
+
+  function renderDays() {
+    const grid = document.getElementById('days-grid');
+    grid.innerHTML = '';
+    DAYS.forEach(day => {
+      const row = document.createElement('div');
+      row.className = `day-row${day.active ? ' active' : ''}`;
+      row.id = `day-row-${day.dow}`;
+
+      row.innerHTML = `
+        <div class="day-check">
+          <input type="checkbox" id="day-${day.dow}" ${day.active ? 'checked' : ''}
+            onchange="toggleDay(${day.dow}, this.checked)">
+          <label for="day-${day.dow}">${day.label}</label>
+        </div>
+        <div class="day-ranges" id="ranges-${day.dow}" style="${day.active ? '' : 'display:none'}">
+          ${day.ranges.map((r, i) => rangeHTML(day.dow, i, r.s, r.e)).join('')}
+          <button class="btn-add-range" onclick="addRange(${day.dow})">+ franja</button>
+        </div>
+        <div class="day-closed" id="closed-${day.dow}" style="${day.active ? 'display:none' : ''}">Cerrado</div>
+      `;
+      grid.appendChild(row);
+    });
+  }
+
+  function rangeHTML(dow, idx, startVal = '09:00', endVal = '18:00') {
+    return `
+      <div class="time-range" id="range-${dow}-${idx}">
+        <input type="time" value="${startVal}" id="start-${dow}-${idx}">
+        <span>a</span>
+        <input type="time" value="${endVal}" id="end-${dow}-${idx}">
+        <button class="btn-remove-range" onclick="removeRange(${dow},${idx})" title="Quitar">×</button>
+      </div>
+    `;
+  }
+
+  function toggleDay(dow, active) {
+    const row = document.getElementById(`day-row-${dow}`);
+    row.classList.toggle('active', active);
+    document.getElementById(`ranges-${dow}`).style.display = active ? '' : 'none';
+    document.getElementById(`closed-${dow}`).style.display = active ? 'none' : '';
+    const d = DAYS.find(d => d.dow === dow);
+    if (d) d.active = active;
+  }
+
+  function addRange(dow) {
+    const container = document.getElementById(`ranges-${dow}`);
+    const btn = container.querySelector('.btn-add-range');
+    const count = container.querySelectorAll('.time-range').length;
+    if (count >= 3) return;
+    const div = document.createElement('div');
+    div.innerHTML = rangeHTML(dow, count);
+    container.insertBefore(div.firstElementChild, btn);
+  }
+
+  function removeRange(dow, idx) {
+    const el = document.getElementById(`range-${dow}-${idx}`);
+    const container = document.getElementById(`ranges-${dow}`);
+    if (container.querySelectorAll('.time-range').length <= 1) return;
+    el?.remove();
+  }
+
+  function collectHorarios() {
+    const h = {};
+    DAYS.forEach(day => {
+      if (!day.active) return;
+      const ranges = [];
+      document.querySelectorAll(`#ranges-${day.dow} .time-range`).forEach(row => {
+        const s = row.querySelector('input[type=time]:first-of-type')?.value;
+        const e = row.querySelector('input[type=time]:last-of-type')?.value;
+        if (s && e && s < e) ranges.push({ start: s, end: e });
+      });
+      if (ranges.length > 0) h[String(day.dow)] = ranges;
+    });
+    return h;
+  }
+
+  async function goStep2() {
+    const h = collectHorarios();
+    if (Object.keys(h).length === 0) { showError('Activá al menos un día de atención.'); return; }
+    const btn = document.querySelector('#step-2 .btn-next');
+    setLoading(btn, true);
+    try {
+      await apiFetch('/api/me/clinic', { method: 'PATCH', body: JSON.stringify({ horarios: h }) });
+      goTo(3);
+    } catch (e) { showError(e.message); }
+    finally { setLoading(btn, false); }
+  }
+
+  // ── Step 3: Servicios ─────────────────────────
+  const DEFAULT_SERVICES = [
+    { name: 'Consulta / revisación', price: '', duration: '30' },
+    { name: 'Limpieza dental',       price: '', duration: '45' },
+    { name: 'Curación (caries)',     price: '', duration: '45' },
+    { name: 'Extracción simple',     price: '', duration: '45' },
+  ];
+  let services = DEFAULT_SERVICES.map((s, i) => ({ ...s, id: i }));
+  let svcId = services.length;
+
+  function renderServices() {
+    const list = document.getElementById('services-list');
+    list.innerHTML = services.map(s => `
+      <div class="service-item" id="svc-${s.id}">
+        <input type="text" placeholder="Nombre del servicio" value="${s.name}"
+          oninput="updateService(${s.id},'name',this.value)" />
+        <input type="number" placeholder="0" min="0" value="${s.price}"
+          oninput="updateService(${s.id},'price',this.value)" />
+        <select onchange="updateService(${s.id},'duration',this.value)">
+          ${[15,20,30,45,60,90].map(m => `<option value="${m}" ${s.duration==m?'selected':''}>${m} min</option>`).join('')}
+        </select>
+        <button class="btn-del-service" onclick="removeService(${s.id})">×</button>
+      </div>
+    `).join('');
+  }
+
+  function updateService(id, field, val) {
+    const s = services.find(s => s.id === id);
+    if (s) s[field] = val;
+  }
+  function addService() {
+    services.push({ id: svcId++, name: '', price: '', duration: '30' });
+    renderServices();
+  }
+  function removeService(id) {
+    services = services.filter(s => s.id !== id);
+    renderServices();
+  }
+
+  async function goStep3() {
+    // Guardar servicios en la DB
+    const valid = services.filter(s => s.name.trim());
+    if (valid.length === 0) { showError('Agregá al menos un servicio.'); return; }
+    const btn = document.querySelector('#step-3 .btn-next');
+    setLoading(btn, true);
+    try {
+      // Guardar servicios uno por uno (el endpoint ya existe)
+      for (const s of valid) {
+        await apiFetch(`/api/c/${_clinicSlug}/services`, {
+          method: 'POST',
+          body: JSON.stringify({ name: s.name.trim(), price: parseFloat(s.price) || 0, duration: parseInt(s.duration) }),
+        }).catch(() => {}); // ignorar duplicados
+      }
+      goTo(4);
+    } catch (e) { showError(e.message); }
+    finally { setLoading(btn, false); }
+  }
+
+  // ── Step 4: Políticas ─────────────────────────
+  function selectOption(type, el) {
+    const parent = el.parentElement;
+    parent.querySelectorAll('.range-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    if (type === 'slot')    policies.slot    = parseInt(el.dataset.val);
+    if (type === 'advance') policies.advance = parseInt(el.dataset.val);
+    if (type === 'max')     policies.max     = parseInt(el.dataset.val);
+  }
+
+  function makeChips(containerId, items, set) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = items.map(item => `
+      <label class="checkbox-chip ${set.has(item) ? 'checked' : ''}">
+        <input type="checkbox" ${set.has(item) ? 'checked' : ''}
+          onchange="toggleChip(this, '${item}', '${containerId === 'os-chips' ? 'os' : 'mp'}')">
+        ${item}
+      </label>
+    `).join('');
+  }
+
+  function toggleChip(el, val, type) {
+    el.parentElement.classList.toggle('checked', el.checked);
+    if (type === 'os') el.checked ? policies.os.add(val) : policies.os.delete(val);
+    if (type === 'mp') el.checked ? policies.mp.add(val) : policies.mp.delete(val);
+  }
+
+  const OS_LIST = ['PAMI','APROSS','OSPE','Swiss Medical','OSDE','Galeno','Sin cobertura'];
+  const MP_LIST = ['Efectivo','Transferencia','Tarjeta débito','Tarjeta crédito','MercadoPago'];
+
+  // Init chips con defaults
+  ['Efectivo','Transferencia'].forEach(v => policies.mp.add(v));
+
+  async function goStep4() {
+    const btn = document.querySelector('#step-4 .btn-next');
+    setLoading(btn, true);
+    try {
+      await apiFetch('/api/me/clinic', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          slot_duration_min: policies.slot,
+          min_advance_hours: policies.advance,
+          max_per_day:       policies.max,
+          obras_sociales:    [...policies.os],
+          medios_pago:       [...policies.mp],
+        }),
+      });
+      goTo(5);
+    } catch (e) { showError(e.message); }
+    finally { setLoading(btn, false); }
+  }
+
+  // ── Step 5: Telegram ──────────────────────────
+  async function validateToken() {
+    const token = document.getElementById('s5-token').value.trim();
+    if (!token) return;
+    const btn    = document.getElementById('btn-validate-tg');
+    const status = document.getElementById('bot-status');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    status.className = 'bot-status';
+    try {
+      const data = await apiFetch('/api/validate-telegram', {
+        method: 'POST', body: JSON.stringify({ token }),
+      });
+      status.className = 'bot-status ok';
+      status.textContent = `✓ Bot validado: @${data.bot.username}`;
+      validatedToken = token;
+    } catch (e) {
+      status.className = 'bot-status fail';
+      status.textContent = `✗ ${e.message}`;
+      validatedToken = null;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Verificar';
+    }
+  }
+
+  async function finishOnboarding() {
+    if (!validatedToken) { showError('Verificá el token del bot antes de continuar.'); return; }
+    await completeOnboarding(validatedToken);
+  }
+
+  async function skipTelegram() {
+    await completeOnboarding(null);
+  }
+
+  async function completeOnboarding(token) {
+    const btn = document.getElementById('s5-finish');
+    setLoading(btn, true);
+    try {
+      // TODO: guardar token en clinic_channels cuando esté implementado el manager
+      await apiFetch('/api/me/clinic', {
+        method: 'PATCH',
+        body: JSON.stringify({ onboarding_completed: true }),
+      });
+      window.location.replace('/dashboard.html');
+    } catch (e) {
+      showError(e.message);
+      setLoading(btn, false);
+    }
+  }
+
+  // ── Init componentes ──────────────────────────
+  renderDays();
+  renderServices();
+  makeChips('os-chips', OS_LIST, policies.os);
+  makeChips('mp-chips', MP_LIST, policies.mp);
+
+  // Seleccionar opciones iniciales de políticas
+  ['slot-options','advance-options','max-options'].forEach(id => {
+    document.querySelectorAll(`#${id} .range-option`).forEach(el => {
+      el.classList.remove('selected');
+    });
+  });
+  document.querySelector(`#slot-options [data-val="${policies.slot}"]`)?.classList.add('selected');
+  document.querySelector(`#advance-options [data-val="${policies.advance}"]`)?.classList.add('selected');
+  document.querySelector(`#max-options [data-val="${policies.max}"]`)?.classList.add('selected');
+</script>
+</body>
+</html>

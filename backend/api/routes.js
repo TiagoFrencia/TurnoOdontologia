@@ -19,6 +19,8 @@ import {
   searchAppointments,
   isSlugAvailable,
   getClinicByOwner,
+  createClinic,
+  updateClinic,
 } from "../db/supabase.js";
 import { supabaseAuth } from "../db/supabase.js";
 import {
@@ -64,10 +66,10 @@ export function createRouter(bot) {
         const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
         if (dateStr < today)              { result[dateStr] = "past";    continue; }
         const dow = getDayOfWeek(dateStr);
-        if (!isWorkday(dow))              { result[dateStr] = "closed";  continue; }
-        if (blockedDays.has(dateStr))     { result[dateStr] = "blocked"; continue; }
+        if (!isWorkday(dow, req.clinic.horarios))              { result[dateStr] = "closed";  continue; }
+        if (blockedDays.has(dateStr))                          { result[dateStr] = "blocked"; continue; }
         const appointments = await getAppointmentsByDate(clinicId, dateStr);
-        const available = getAvailableSlots(dow, appointments.map((a) => a.time));
+        const available = getAvailableSlots(dow, appointments.map((a) => a.time), req.clinic.horarios, req.clinic.slot_duration_min);
         result[dateStr] = available.length > 0 ? "available" : "full";
       }
       res.json(result);
@@ -82,10 +84,10 @@ export function createRouter(bot) {
       if (!date) return res.status(400).json({ error: "Falta el parámetro date" });
 
       const dow = getDayOfWeek(date);
-      if (!isWorkday(dow)) return res.json({ slots: [], reason: "El consultorio no atiende este día" });
+      if (!isWorkday(dow, req.clinic.horarios)) return res.json({ slots: [], reason: "El consultorio no atiende este día" });
 
       const appointments = await getAppointmentsByDate(clinicId, date);
-      const slots = getAvailableSlots(dow, appointments.map((a) => a.time));
+      const slots = getAvailableSlots(dow, appointments.map((a) => a.time), req.clinic.horarios, req.clinic.slot_duration_min);
       res.json({ slots });
     } catch (e) { res.status(500).json({ error: e.message }); }
   });
@@ -102,7 +104,7 @@ export function createRouter(bot) {
 
       const dow = getDayOfWeek(date);
       const existing = await getAppointmentsByDate(clinicId, date);
-      const available = getAvailableSlots(dow, existing.map((a) => a.time));
+      const available = getAvailableSlots(dow, existing.map((a) => a.time), req.clinic.horarios, req.clinic.slot_duration_min);
       if (!available.includes(time)) {
         return res.status(409).json({ error: "Ese horario ya no está disponible. Por favor elegí otro." });
       }
@@ -285,6 +287,70 @@ export function createRouter(bot) {
       const available = await isSlugAvailable(slug);
       res.json({ available });
     } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ─── POST /api/register ── Crear cuenta + fila en clinics ────
+  router.post("/register", async (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "No autorizado" });
+    const token = auth.slice(7);
+    const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
+    if (error || !user) return res.status(401).json({ error: "Sesión inválida" });
+
+    // Si ya tiene clínica, devolver la existente (idempotente)
+    try {
+      const existing = await getClinicByOwner(user.id);
+      return res.json({ clinic: existing });
+    } catch { /* no existe aún */ }
+
+    const { name, slug, matricula, telefono } = req.body;
+    if (!name?.trim() || !slug?.trim()) return res.status(400).json({ error: "Nombre y slug son requeridos" });
+
+    const cleanSlug = slug.toLowerCase().trim();
+    if (!/^[a-z0-9-]{3,40}$/.test(cleanSlug)) return res.status(400).json({ error: "Slug inválido (3-40 caracteres, solo letras, números y guiones)" });
+    if (!(await isSlugAvailable(cleanSlug))) return res.status(409).json({ error: "Ese identificador ya está en uso" });
+
+    try {
+      const clinic = await createClinic({
+        owner_user_id: user.id,
+        name: name.trim(),
+        slug: cleanSlug,
+        matricula: matricula?.trim() || null,
+        telefono: telefono?.trim() || null,
+        onboarding_completed: false,
+      });
+      res.json({ clinic });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ─── PATCH /api/me/clinic ── Actualizar clínica durante onboarding
+  router.patch("/me/clinic", async (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "No autorizado" });
+    const token = auth.slice(7);
+    const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
+    if (error || !user) return res.status(401).json({ error: "Sesión inválida" });
+
+    try {
+      const clinic = await getClinicByOwner(user.id);
+      const allowed = ["name", "matricula", "telefono", "instagram", "ubicacion", "horarios", "obras_sociales", "medios_pago", "slot_duration_min", "min_advance_hours", "max_per_day", "onboarding_completed"];
+      const fields = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
+      const updated = await updateClinic(clinic.id, fields);
+      invalidateClinicCache(clinic.id);
+      res.json({ clinic: updated });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ─── POST /api/validate-telegram ── Valida token de bot ──────
+  router.post("/validate-telegram", async (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: "Token requerido" });
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      const data = await r.json();
+      if (!data.ok) return res.status(400).json({ error: "Token inválido" });
+      res.json({ valid: true, bot: data.result });
+    } catch (e) { res.status(500).json({ error: "No se pudo verificar el token" }); }
   });
 
   return router;

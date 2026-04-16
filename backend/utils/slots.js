@@ -1,19 +1,24 @@
-// ─────────────────────────────────────────────
-//  HORARIOS DEL CONSULTORIO
-//  Reemplazar con datos reales de Ignacio
-// ─────────────────────────────────────────────
-
-// Día de semana → franjas horarias (0=Dom, 1=Lun, ..., 6=Sáb)
-const SCHEDULE = {
-  1: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }], // Lunes
-  2: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }], // Martes
-  3: [{ start: "09:00", end: "13:00" }],                                    // Miércoles
-  4: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }], // Jueves
-  5: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }], // Viernes
-  // Sábado y Domingo: cerrado (no están en el objeto)
+// Horarios por defecto — se usan cuando la clínica no tiene horarios configurados
+const DEFAULT_SCHEDULE = {
+  1: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }],
+  2: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }],
+  3: [{ start: "09:00", end: "13:00" }],
+  4: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }],
+  5: [{ start: "09:00", end: "13:00" }, { start: "16:00", end: "20:00" }],
 };
 
-export const SLOT_DURATION = 45; // minutos
+export const DEFAULT_SLOT_DURATION = 45;
+
+// Convierte el jsonb de clinic.horarios (claves string) al formato interno (claves numéricas)
+function parseHorarios(horarios) {
+  if (!horarios || typeof horarios !== "object") return DEFAULT_SCHEDULE;
+  const result = {};
+  for (const [k, v] of Object.entries(horarios)) {
+    const day = parseInt(k);
+    if (!isNaN(day) && Array.isArray(v) && v.length > 0) result[day] = v;
+  }
+  return Object.keys(result).length > 0 ? result : DEFAULT_SCHEDULE;
+}
 
 function timeToMinutes(time) {
   const [h, m] = time.split(":").map(Number);
@@ -27,8 +32,10 @@ function minutesToTime(minutes) {
 }
 
 // Devuelve todos los slots posibles para un día de semana dado
-export function getAllSlotsForWeekday(dayOfWeek) {
-  const ranges = SCHEDULE[dayOfWeek];
+export function getAllSlotsForWeekday(dayOfWeek, horarios = null, slotDuration = null) {
+  const schedule = parseHorarios(horarios);
+  const duration = slotDuration || DEFAULT_SLOT_DURATION;
+  const ranges = schedule[dayOfWeek];
   if (!ranges) return [];
 
   const slots = [];
@@ -37,22 +44,23 @@ export function getAllSlotsForWeekday(dayOfWeek) {
     const end = timeToMinutes(range.end);
     while (current < end) {
       slots.push(minutesToTime(current));
-      current += SLOT_DURATION;
+      current += duration;
     }
   }
   return slots;
 }
 
 // Dado un conjunto de turnos ya reservados, devuelve los slots libres
-export function getAvailableSlots(dayOfWeek, bookedTimes) {
-  const all = getAllSlotsForWeekday(dayOfWeek);
-  const booked = new Set(bookedTimes.map((t) => t.slice(0, 5))); // normalizar HH:MM
+export function getAvailableSlots(dayOfWeek, bookedTimes, horarios = null, slotDuration = null) {
+  const all = getAllSlotsForWeekday(dayOfWeek, horarios, slotDuration);
+  const booked = new Set(bookedTimes.map((t) => t.slice(0, 5)));
   return all.filter((slot) => !booked.has(slot));
 }
 
 // Dice si el consultorio atiende ese día de semana
-export function isWorkday(dayOfWeek) {
-  return dayOfWeek in SCHEDULE;
+export function isWorkday(dayOfWeek, horarios = null) {
+  const schedule = parseHorarios(horarios);
+  return dayOfWeek in schedule;
 }
 
 // Devuelve el día de semana en Buenos Aires para una fecha dada (string YYYY-MM-DD)
