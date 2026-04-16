@@ -132,6 +132,19 @@
     }
     .error-box.visible { display: block; }
 
+    .success-box {
+      background: rgba(74,222,128,.1);
+      border: 1px solid rgba(74,222,128,.3);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: .85rem;
+      color: #4ade80;
+      margin-bottom: 16px;
+      display: none;
+      line-height: 1.5;
+    }
+    .success-box.visible { display: block; }
+
     .btn-submit {
       width: 100%;
       padding: 13px;
@@ -214,6 +227,12 @@
 
   <div class="error-box" id="error-box">
     <span id="error-text"></span>
+  </div>
+
+  <div class="success-box" id="success-box">
+    <strong>📧 Revisá tu email</strong><br>
+    Te enviamos un link de confirmación a <span id="success-email"></span>.<br>
+    Una vez que confirmes, podrás iniciar sesión.
   </div>
 
   <form id="signup-form" autocomplete="off">
@@ -319,20 +338,32 @@
     btnSubmit.disabled = true;
     btnSubmit.classList.add('loading');
 
-    const { error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({ email, password });
     if (error) {
       btnSubmit.disabled = false;
       btnSubmit.classList.remove('loading');
       if (error.message?.includes('already registered')) {
         showError('Este email ya está registrado. ¿Querés iniciar sesión?');
+      } else if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
+        showError('Demasiados intentos. Esperá unos minutos y volvé a intentar.');
       } else {
         showError(error.message || 'Error al crear la cuenta. Intentá de nuevo.');
       }
       return;
     }
 
-    // Éxito — ir al onboarding
-    window.location.replace('/onboarding.html');
+    // Si hay sesión activa (email confirmation desactivada) → ir al onboarding
+    if (data.session) {
+      window.location.replace('/onboarding.html');
+      return;
+    }
+
+    // Si no hay sesión → Supabase requiere confirmar el email
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('success-email').textContent = email;
+    document.getElementById('success-box').classList.add('visible');
+    btnSubmit.disabled = false;
+    btnSubmit.classList.remove('loading');
   });
 </script>
 </body>
