@@ -554,7 +554,7 @@
         <svg viewBox="0 0 24 24"><path d="M12 3c-1.5 0-3 1-3 3 0 1 .4 2 .9 3l-.9 9c0 .8.6 1.5 1.5 1.5h3c.9 0 1.5-.7 1.5-1.5l-.9-9c.5-1 .9-2 .9-3 0-2-1.5-3-3-3z"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
       </div>
       <div>
-        <span class="brand-name">Od. Rossetti</span>
+        <span class="brand-name" id="sidebar-name">Cargando…</span>
         <span class="brand-sub">Panel de turnos</span>
       </div>
     </div>
@@ -587,7 +587,7 @@
     </a>
 
     <div class="sidebar-footer">
-      <div class="footer-mp"><span class="footer-dot"></span>Od. Ignacio Rossetti · M.P. 12572</div>
+      <div class="footer-mp" id="footer-mp"><span class="footer-dot"></span>…</div>
       <button id="btn-logout" style="
         margin-top:0.9rem; width:100%; padding:0.55rem 0.9rem;
         background:transparent; border:1px solid rgba(255,255,255,0.1);
@@ -611,7 +611,7 @@
     <div class="page active" id="page-hoy">
       <div class="page-head">
         <div class="page-eyebrow">Panel de control</div>
-        <h1 class="page-title">Buenos días, <em>Ignacio</em></h1>
+        <h1 class="page-title" id="greeting">Buenos días, <em>…</em></h1>
         <p class="page-sub" id="today-sub"></p>
       </div>
 
@@ -827,7 +827,7 @@
     return { 'Content-Type': 'application/json', ...authHeader() };
   }
 
-  const API = "/api/c/rossetti";
+  let API = "/api/c/rossetti"; // se sobreescribe en init con el slug real
 
   function fmtShort(ds) {
     const [y,m,d] = ds.split('-').map(Number);
@@ -1168,17 +1168,41 @@
     setTimeout(() => { btn.disabled = false; btn.textContent = 'Enviar ahora'; }, 3000);
   });
 
-  // ── Logout ───────────────────────────────────────────────────
-  document.getElementById('btn-logout').addEventListener('click', async () => {
-    await _sb.auth.signOut();
-    window.location.replace('/login.html?slug=rossetti');
+  // ── Init — esperar sesión, cargar clínica y luego datos ───────
+  _sb.auth.getSession().then(async ({ data }) => {
+    if (!data.session) { window.location.replace('/login.html'); return; }
+    _session = data.session;
+
+    // Cargar info de la clínica del usuario logueado
+    try {
+      const { clinic } = await fetch('/api/me', { headers: authHeader() }).then(r => r.json());
+      if (clinic) {
+        API = `/api/c/${clinic.slug}`;
+
+        // Sidebar
+        document.getElementById('sidebar-name').textContent = clinic.name || '';
+
+        // Saludo con hora del día
+        const h = new Date().getHours();
+        const saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+        const cleanName = (clinic.name || '').replace(/^(od\.|dr\.|dra\.|lic\.)\s*/i, '');
+        const firstName = cleanName.split(' ')[0];
+        document.getElementById('greeting').innerHTML = `${saludo}, <em>${firstName}</em>`;
+
+        // Footer
+        const fp = document.getElementById('footer-mp');
+        fp.innerHTML = `<span class="footer-dot"></span>${clinic.name}${clinic.matricula ? ' · ' + clinic.matricula : ''}`;
+      }
+    } catch { /* usa los defaults si falla */ }
+
+    loadHoy();
   });
 
-  // ── Init — esperar sesión antes de cargar datos ───────────────
-  _sb.auth.getSession().then(({ data }) => {
-    if (!data.session) { window.location.replace('/login.html?slug=rossetti'); return; }
-    _session = data.session;
-    loadHoy();
+  // ── Logout ───────────────────────────────────────────────────
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    const slug = API.split('/api/c/')[1] || 'rossetti';
+    await _sb.auth.signOut();
+    window.location.replace(`/login.html?slug=${slug}`);
   });
 </script>
 </body>

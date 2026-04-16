@@ -18,7 +18,9 @@ import {
   updateClinicInfo,
   searchAppointments,
   isSlugAvailable,
+  getClinicByOwner,
 } from "../db/supabase.js";
+import { supabaseAuth } from "../db/supabase.js";
 import {
   getAllSlotsForWeekday,
   getAvailableSlots,
@@ -259,6 +261,21 @@ export function createRouter(bot) {
   // ═══════════════════════════════════════════════════════════════
   //  UTILIDADES PÚBLICAS (sin auth, sin slug)
   // ═══════════════════════════════════════════════════════════════
+
+  // ─── GET /api/me ─────────────────────────────────────────────
+  router.get("/me", async (req, res) => {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "No autorizado" });
+    const token = auth.slice(7);
+    const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
+    if (error || !user) return res.status(401).json({ error: "Sesión inválida" });
+    try {
+      const clinic = await getClinicByOwner(user.id);
+      res.json({ clinic });
+    } catch {
+      res.status(404).json({ error: "Consultorio no encontrado" });
+    }
+  });
 
   // ─── GET /api/slug-available?slug=xxx ────────────────────────
   router.get("/slug-available", async (req, res) => {

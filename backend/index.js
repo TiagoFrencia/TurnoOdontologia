@@ -23,7 +23,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 setupHandlers(bot);
 bot.catch((err, ctx) => console.error(`Error en update ${ctx.updateType}:`, err));
-bot.launch({ dropPendingUpdates: true });
+bot.launch({ dropPendingUpdates: true }).catch(err => {
+  console.warn("⚠️  Bot no pudo arrancar (¿otra instancia corriendo?):", err.message);
+});
 startReminderCron(bot);
 console.log("🤖 Bot de Telegram arrancado en modo polling...");
 

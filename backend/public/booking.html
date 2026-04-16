@@ -556,7 +556,8 @@
     const SERVICE = params.get("servicio") || "Consulta general";
     const UID     = params.get("uid")      || "";
     const NOMBRE  = params.get("nombre")   || "";
-    const API     = "/api/c/rossetti";
+    const slug    = params.get("slug") || "rossetti";
+    const API     = `/api/c/${slug}`;
 
     document.getElementById("service-tag").textContent = SERVICE;
 

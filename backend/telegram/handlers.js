@@ -43,7 +43,8 @@ export function setupHandlers(bot) {
         const servicio = bookingMatch[2].trim();
 
         // Construir el link con los datos del paciente
-        const params = new URLSearchParams({ nombre, servicio, uid: userId });
+        const clinicSlug = process.env.CLINIC_SLUG || "rossetti";
+        const params = new URLSearchParams({ slug: clinicSlug, nombre, servicio, uid: userId });
         const bookingUrl = `${BOOKING_BASE_URL}?${params.toString()}`;
 
         await ctx.reply(
