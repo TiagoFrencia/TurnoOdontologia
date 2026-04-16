@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel — Od. Rossetti</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --teal:       #3dbfb8;
+      --teal-dark:  #2a9e97;
+      --teal-dim:   #1d7a74;
+      --teal-light: #e8f8f7;
+      --teal-pale:  #f0fafa;
+      --dark:       #0f1f1e;
+      --mid:        #1e3a38;
+      --text:       #2d4a47;
+      --muted:      #6b8f8d;
+      --border:     #d0ecea;
+      --white:      #ffffff;
+      --off-white:  #f7fafa;
+      --red:        #e05c5c;
+      --red-pale:   #fdf2f2;
+    }
+
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--off-white); color: var(--text); min-height: 100vh; }
+
+    /* ── Layout ── */
+    .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--dark);
+      display: flex;
+      flex-direction: column;
+      padding: 1.8rem 1.2rem 1.5rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Grain texture on sidebar */
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+    /* Teal glow at bottom of sidebar */
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      bottom: -4rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10rem;
+      height: 10rem;
+      background: radial-gradient(circle, rgba(61,191,184,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding-bottom: 1.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+    }
+    .brand-icon {
+      width: 2.2rem; height: 2.2rem;
+      background: var(--teal);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(61,191,184,0.35);
+    }
+    .brand-icon svg { width: 1.05rem; height: 1.05rem; stroke: white; fill: none; stroke-width: 1.8; }
+    .brand-name {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-weight: 400;
+      color: white;
+      display: block;
+      letter-spacing: 0.01em;
+    }
+    .brand-sub { font-size: 0.65rem; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .nav-section { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 1rem 0.6rem 0.5rem; position: relative; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: all 0.18s;
+      text-decoration: none;
+      margin-bottom: 2px;
+      position: relative;
+    }
+    .nav-item svg { width: 1rem; height: 1rem; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; transition: transform 0.2s; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); }
+    .nav-item:hover svg { transform: translateX(2px); }
+    .nav-item.active { background: rgba(61,191,184,0.15); color: var(--teal); font-weight: 600; }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 20%; bottom: 20%;
+      width: 3px;
+      background: var(--teal);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .footer-mp { font-size: 0.68rem; color: rgba(255,255,255,0.22); letter-spacing: 0.04em; }
+    .footer-dot { display: inline-block; width: 6px; height: 6px; background: var(--teal); border-radius: 50%; margin-right: 0.4rem; animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+    /* ── Main ── */
+    .main { padding: 2.2rem 2.5rem; overflow-y: auto; }
+    .page { display: none; animation: fadeIn 0.3s ease both; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+    /* ── Page header ── */
+    .page-head { margin-bottom: 2rem; }
+    .page-eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-bottom: 0.3rem; }
+    .page-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.6rem, 3vw, 2.1rem);
+      font-weight: 300;
+      color: var(--dark);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .page-title em { color: var(--teal); font-style: italic; }
+    .page-sub { font-size: 0.83rem; color: var(--muted); margin-top: 0.3rem; }
+
+    /* ── Stats ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.2rem; }
+    .stat-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.3rem 1.4rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal), var(--teal-dark));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(.16,1,.3,1);
+    }
+    .stat-card:hover { box-shadow: 0 8px 28px rgba(61,191,184,0.1); transform: translateY(-2px); }
+    .stat-card:hover::after { transform: scaleX(1); }
+    .stat-icon {
+      width: 2.7rem; height: 2.7rem;
+      background: var(--teal-pale);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon svg { width: 1.2rem; height: 1.2rem; stroke: var(--teal); fill: none; stroke-width: 2; }
+    .stat-num {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stat-label { font-size: 0.73rem; color: var(--muted); margin-top: 0.15rem; font-weight: 500; }
+
+    /* ── Section header ── */
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .section-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); letter-spacing: 0.01em; }
+    .chip {
+      padding: 0.2rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .chip-teal { background: var(--teal-light); color: var(--teal-dark); }
+    .chip-red  { background: var(--red-pale);   color: var(--red); }
+
+    /* ── Appointment list ── */
+    .appt-list { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 2rem; }
+
+    .appt-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--teal);
+      border-radius: 14px;
+      padding: 0.95rem 1.1rem 0.95rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: box-shadow 0.18s, transform 0.18s;
+    }
+    .appt-card:hover { box-shadow: 0 4px 18px rgba(15,31,30,0.07); transform: translateX(2px); }
+
+    .appt-time-badge {
+      min-width: 4.2rem;
+      text-align: center;
+      padding: 0.5rem 0.4rem;
+      background: var(--teal-pale);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .appt-time-val {
+      font-family: 'Fraunces', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--teal-dark);
+      display: block;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .appt-time-hs { font-size: 0.62rem; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; }
+
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-name { font-weight: 700; font-size: 0.9rem; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .appt-service { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+    .appt-date { font-size: 0.72rem; color: var(--teal-dark); font-weight: 600; margin-top: 0.15rem; letter-spacing: 0.02em; }
+
+    .appt-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+    .btn-icon {
+      width: 1.9rem; height: 1.9rem;
+      border-radius: 8px;
+      border: 1.5px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-icon svg { width: 0.9rem; height: 0.9rem; stroke: currentColor; fill: none; stroke-width: 2; }
+    .btn-cancel { background: var(--red-pale); color: var(--red); border-color: transparent; }
+    .btn-cancel:hover { background: var(--red); color: white; }
+
+    /* ── Date group label ── */
+    .date-group-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 1.2rem 0 0.5rem;
+    }
+    .date-group-label:first-child { padding-top: 0; }
+
+    /* ── Empty state ── */
+    .empty {
+      background: var(--white);
+      border: 1.5px dashed var(--border);
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .empty-icon { width: 3rem; height: 3rem; stroke: var(--border); fill: none; stroke-width: 1.3; margin: 0 auto 0.8rem; display: block; }
+    .empty p { color: var(--muted); font-size: 0.88rem; }
+
+    /* ── Blocker ── */
+    .blocker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+    .form-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem;
+    }
+    .form-card h3 { font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 400; color: var(--dark); margin-bottom: 1.2rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--dark);
+      background: var(--off-white);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .form-input:focus { outline: none; border-color: var(--teal); background: var(--white); }
+    .btn-primary {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(61,191,184,0.3);
+    }
+    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+
+    .blocked-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .blocked-item {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .blocked-date { font-weight: 700; font-size: 0.85rem; color: var(--dark); text-transform: capitalize; }
+    .btn-unblock {
+      padding: 0.3rem 0.75rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--red);
+      background: var(--red-pale);
+      color: var(--red);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-unblock:hover { background: var(--red); color: white; }
+
+    /* ── Services table ── */
+    .services-table-wrap {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .svc-table { width: 100%; border-collapse: collapse; }
+    .svc-table th {
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1.5px solid var(--border);
+      background: var(--off-white);
+    }
+    .svc-table td {
+      padding: 0.85rem 1.2rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .svc-table tr:last-child td { border-bottom: none; }
+    .svc-table tr:hover td { background: var(--teal-pale); }
+
+    .svc-name { font-weight: 600; color: var(--dark); }
+    .svc-price { font-family: 'Fraunces', serif; font-size: 1rem; color: var(--teal-dark); font-weight: 400; }
+    .svc-duration { color: var(--muted); font-size: 0.8rem; }
+
+    /* Editable cell */
+    .editable {
+      background: transparent;
+      border: 1.5px solid transparent;
+      border-radius: 8px;
+      padding: 0.35rem 0.6rem;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      font-weight: inherit;
+      width: 100%;
+      transition: border-color 0.15s, background 0.15s;
+      cursor: text;
+    }
+    .editable:focus {
+      outline: none;
+      border-color: var(--teal);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(61,191,184,0.12);
+    }
+    .editable-price {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      color: var(--teal-dark);
+      max-width: 120px;
+    }
+    .editable-duration { max-width: 70px; color: var(--muted); font-size: 0.85rem; }
+    .editable-name { font-weight: 600; color: var(--dark); }
+
+    .btn-save {
+      padding: 0.3rem 0.75rem;
+      border-radius: 8px;
+      border: 1.5px solid var(--teal);
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .btn-save.visible { opacity: 1; pointer-events: auto; }
+    .btn-save:hover { background: var(--teal); color: white; }
+
+    .add-service-form {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.5rem;
+      max-width: 560px;
+    }
+    .add-service-form h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--dark);
+      margin-bottom: 1.2rem;
+    }
+    .add-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.75rem; align-items: end; }
+    .add-row .form-group { margin-bottom: 0; }
+
+    /* ── Search ── */
+    .search-bar-wrap { position: relative; max-width: 480px; margin-bottom: 1.8rem; }
+    .search-input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      font-size: 0.92rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--dark);
+      background: var(--white);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(15,31,30,0.05);
+    }
+    .search-input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(61,191,184,0.12); }
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.1rem;
+      height: 1.1rem;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 2;
+      pointer-events: none;
+    }
+    .search-results-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+
+    /* Status chip on appt cards */
+    .status-chip {
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .status-confirmed  { background: var(--teal-light);  color: var(--teal-dark); }
+    .status-cancelled  { background: #fee2e2;             color: #b91c1c; }
+    .status-completed  { background: #f0fdf4;             color: #15803d; }
+
+    /* ── Config fields ── */
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .config-textarea { resize: vertical; min-height: 80px; }
+    .config-save-row { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+    .save-feedback { font-size: 0.82rem; color: var(--teal-dark); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+    .save-feedback.show { opacity: 1; }
+
+    /* ── Reminder banner ── */
+    .reminder-banner {
+      background: linear-gradient(135deg, var(--teal-pale), var(--white));
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .reminder-banner-text { font-size: 0.85rem; color: var(--text); }
+    .reminder-banner-text strong { color: var(--dark); display: block; font-weight: 700; margin-bottom: 0.2rem; }
+    .btn-secondary {
+      padding: 0.65rem 1.2rem;
+      background: transparent;
+      border: 1.5px solid var(--teal);
+      color: var(--teal-dark);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-secondary:hover { background: var(--teal); color: white; }
+
+    /* ── Loading shimmer ── */
+    .shimmer-line {
+      height: 4.5rem;
+      background: linear-gradient(90deg, var(--teal-pale) 25%, #e8f8f6 50%, var(--teal-pale) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s ease-in-out infinite;
+      border-radius: 14px;
+      margin-bottom: 0.65rem;
+    }
+    @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 1rem 1.2rem; gap: 0.3rem; }
+      .sidebar::after { display: none; }
+      .sidebar-brand { padding-bottom: 0; border-bottom: none; margin-bottom: 0; border-right: 1px solid rgba(255,255,255,0.07); padding-right: 1rem; margin-right: 0.5rem; }
+      .nav-section, .sidebar-footer { display: none; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .blocker-grid { grid-template-columns: 1fr; }
+      .main { padding: 1.5rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-1.5 0-3 1-3 3 0 1 .4 2 .9 3l-.9 9c0 .8.6 1.5 1.5 1.5h3c.9 0 1.5-.7 1.5-1.5l-.9-9c.5-1 .9-2 .9-3 0-2-1.5-3-3-3z"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
+      </div>
+      <div>
+        <span class="brand-name">Od. Rossetti</span>
+        <span class="brand-sub">Panel de turnos</span>
+      </div>
+    </div>
+
+    <div class="nav-section">Menú</div>
+
+    <a class="nav-item active" id="nav-hoy" onclick="showPage('hoy')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Hoy
+    </a>
+    <a class="nav-item" id="nav-proximos" onclick="showPage('proximos')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Próximos turnos
+    </a>
+    <a class="nav-item" id="nav-buscar" onclick="showPage('buscar')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Buscar paciente
+    </a>
+    <a class="nav-item" id="nav-servicios" onclick="showPage('servicios')">
+      <svg viewBox="0 0 24 24"><path d="M12 3c-1.5 0-3 1-3 3 0 1 .4 2 .9 3l-.9 9c0 .8.6 1.5 1.5 1.5h3c.9 0 1.5-.7 1.5-1.5l-.9-9c.5-1 .9-2 .9-3 0-2-1.5-3-3-3z"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
+      Servicios
+    </a>
+    <a class="nav-item" id="nav-bloquear" onclick="showPage('bloquear')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Bloquear días
+    </a>
+    <a class="nav-item" id="nav-config" onclick="showPage('config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configuración
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="footer-mp"><span class="footer-dot"></span>Od. Ignacio Rossetti · M.P. 12572</div>
+      <button id="btn-logout" style="
+        margin-top:0.9rem; width:100%; padding:0.55rem 0.9rem;
+        background:transparent; border:1px solid rgba(255,255,255,0.1);
+        border-radius:8px; color:rgba(255,255,255,0.35); font-size:0.75rem;
+        font-family:'Plus Jakarta Sans',sans-serif; cursor:pointer;
+        display:flex; align-items:center; gap:0.5rem; transition:all 0.15s;
+      " onmouseover="this.style.borderColor='rgba(224,92,92,0.4)';this.style.color='#e05c5c'"
+         onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.35)'">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- Hoy -->
+    <div class="page active" id="page-hoy">
+      <div class="page-head">
+        <div class="page-eyebrow">Panel de control</div>
+        <h1 class="page-title">Buenos días, <em>Ignacio</em></h1>
+        <p class="page-sub" id="today-sub"></p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div><div class="stat-num" id="stat-today">—</div><div class="stat-label">Turnos hoy</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div><div class="stat-num" id="stat-week">—</div><div class="stat-label">Esta semana</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div><div class="stat-num" id="stat-total">—</div><div class="stat-label">Próximos totales</div></div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <span class="section-title">Turnos de hoy</span>
+        <span class="chip chip-teal" id="badge-hoy">cargando…</span>
+      </div>
+      <div class="appt-list" id="list-hoy">
+        <div class="shimmer-line"></div><div class="shimmer-line"></div>
+      </div>
+    </div>
+
+    <!-- Próximos -->
+    <div class="page" id="page-proximos">
+      <div class="page-head">
+        <div class="page-eyebrow">Agenda</div>
+        <h1 class="page-title">Próximos <em>turnos</em></h1>
+        <p class="page-sub">Todos los turnos confirmados desde hoy en adelante</p>
+      </div>
+      <div class="appt-list" id="list-proximos">
+        <div class="shimmer-line"></div><div class="shimmer-line"></div><div class="shimmer-line"></div>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="page" id="page-buscar">
+      <div class="page-head">
+        <div class="page-eyebrow">Pacientes</div>
+        <h1 class="page-title">Buscar <em>paciente</em></h1>
+        <p class="page-sub">Buscá por nombre para ver todos los turnos de un paciente</p>
+      </div>
+      <div class="search-bar-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Escribí el nombre del paciente…" autocomplete="off" />
+      </div>
+      <div id="search-results"></div>
+    </div>
+
+    <!-- Configuración del consultorio -->
+    <div class="page" id="page-config">
+      <div class="page-head">
+        <div class="page-eyebrow">Configuración</div>
+        <h1 class="page-title">Info del <em>consultorio</em></h1>
+        <p class="page-sub">Estos datos los usa el bot para responder a los pacientes</p>
+      </div>
+
+      <div class="reminder-banner">
+        <div class="reminder-banner-text">
+          <strong>Recordatorios automáticos</strong>
+          El bot manda un recordatorio por Telegram a cada paciente el día anterior a su turno, a las 9:00 hs.
+          También podés disparar los recordatorios de mañana manualmente.
+        </div>
+        <button class="btn-secondary" id="btn-trigger-reminders">Enviar ahora</button>
+      </div>
+
+      <div class="form-card" style="max-width:700px">
+        <div class="config-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre del profesional</label>
+            <input type="text" class="form-input" id="cfg-nombre" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Matrícula</label>
+            <input type="text" class="form-input" id="cfg-matricula" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono / WhatsApp</label>
+            <input type="text" class="form-input" id="cfg-telefono" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instagram</label>
+            <input type="text" class="form-input" id="cfg-instagram" />
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-input" id="cfg-ubicacion" />
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label class="form-label">Horarios de atención</label>
+            <textarea class="form-input config-textarea" id="cfg-horarios"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Obras sociales</label>
+            <input type="text" class="form-input" id="cfg-obras" placeholder="PAMI, APROSS…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Medios de pago</label>
+            <input type="text" class="form-input" id="cfg-pagos" placeholder="Efectivo, Tarjeta…" />
+          </div>
+        </div>
+        <div class="config-save-row">
+          <button class="btn-primary" id="btn-save-config" style="width:auto;padding:0.75rem 1.8rem">Guardar cambios</button>
+          <span class="save-feedback" id="cfg-feedback">✓ Guardado — el bot ya usa los nuevos datos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicios -->
+    <div class="page" id="page-servicios">
+      <div class="page-head">
+        <div class="page-eyebrow">Configuración</div>
+        <h1 class="page-title">Servicios y <em>precios</em></h1>
+        <p class="page-sub">Editá nombre, precio y duración. Los cambios se reflejan en el bot automáticamente.</p>
+      </div>
+
+      <div class="section-head" style="margin-bottom:1rem">
+        <span class="section-title">Servicios activos</span>
+        <span class="chip chip-teal" id="badge-servicios">—</span>
+      </div>
+
+      <div class="services-table-wrap">
+        <table class="svc-table">
+          <thead>
+            <tr>
+              <th>Servicio</th>
+              <th>Precio</th>
+              <th>Duración (min)</th>
+              <th style="width:6rem"></th>
+            </tr>
+          </thead>
+          <tbody id="svc-tbody">
+            <tr><td colspan="4"><div class="shimmer-line" style="margin:0.5rem 1rem"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="add-service-form">
+        <h3>Agregar servicio</h3>
+        <div class="add-row">
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-input" id="svc-name" placeholder="Ej: Ortodoncia" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio</label>
+            <input type="text" class="form-input" id="svc-price" placeholder="$50.000" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duración (min)</label>
+            <input type="number" class="form-input" id="svc-duration" placeholder="60" min="5" step="5" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn-primary" id="btn-add-svc" style="width:auto;padding:0.75rem 1.2rem">Agregar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloquear días -->
+    <div class="page" id="page-bloquear">
+      <div class="page-head">
+        <div class="page-eyebrow">Gestión</div>
+        <h1 class="page-title">Bloquear <em>días</em></h1>
+        <p class="page-sub">Los días bloqueados no aparecerán como disponibles en el calendario de turnos</p>
+      </div>
+      <div class="blocker-grid">
+        <div class="form-card">
+          <h3>Nuevo bloqueo</h3>
+          <div class="form-group">
+            <label class="form-label" for="inp-date">Fecha</label>
+            <input type="date" class="form-input" id="inp-date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inp-reason">Motivo (opcional)</label>
+            <input type="text" class="form-input" id="inp-reason" placeholder="Vacaciones, feriado…" />
+          </div>
+          <button class="btn-primary" id="btn-block">Bloquear día</button>
+        </div>
+        <div>
+          <div class="section-head">
+            <span class="section-title">Días bloqueados</span>
+            <span class="chip chip-red" id="badge-blocked">—</span>
+          </div>
+          <div class="blocked-list" id="blocked-list">
+            <div class="shimmer-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // ── Supabase client (auth guard + token para API calls) ──────
+  const _sb = window.supabase.createClient(
+    'https://qerjqgybyjvcoxqnjybw.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlcmpxZ3lieWp2Y294cW5qeWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzk5MTIsImV4cCI6MjA5MTg1NTkxMn0.WLx45VB9hjda4Xq7usxGx_VvqTGDQdxvt6lN8Q23TMU'
+  );
+  let _session = null;
+
+  function authHeader() {
+    return _session?.access_token ? { 'Authorization': `Bearer ${_session.access_token}` } : {};
+  }
+  function jsonHeaders() {
+    return { 'Content-Type': 'application/json', ...authHeader() };
+  }
+
+  const API = "/api/c/rossetti";
+
+  function fmtShort(ds) {
+    const [y,m,d] = ds.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('es-AR',{ weekday:'short', day:'numeric', month:'short' });
+  }
+  function fmtFull(ds) {
+    const [y,m,d] = ds.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('es-AR',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function apptHTML(a, showDate=false) {
+    const t = a.time.slice(0,5);
+    const dateRow = showDate ? `<div class="appt-date">${cap(fmtShort(a.date))}</div>` : '';
+    return `<div class="appt-card" id="appt-${a.id}">
+      <div class="appt-time-badge">
+        <span class="appt-time-val">${t}</span>
+        <span class="appt-time-hs">hs</span>
+      </div>
+      <div class="appt-info">
+        <div class="appt-name">${a.patient_name}</div>
+        <div class="appt-service">${a.service_name}</div>
+        ${dateRow}
+      </div>
+      <div class="appt-actions">
+        <button class="btn-icon btn-cancel" title="Cancelar" onclick="cancelAppt('${a.id}')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }
+
+  function emptyHTML(msg) {
+    return `<div class="empty">
+      <svg class="empty-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <p>${msg}</p>
+    </div>`;
+  }
+
+  // ── Services ─────────────────────────────────────────────────
+  async function loadServicios() {
+    const tbody = document.getElementById('svc-tbody');
+    tbody.innerHTML = `<tr><td colspan="4"><div class="shimmer-line" style="margin:0.5rem 1rem"></div></td></tr>`;
+    const data = await fetch(`${API}/services`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]);
+    document.getElementById('badge-servicios').textContent = `${data.length} servicio${data.length!==1?'s':''}`;
+
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">No hay servicios. Agregá uno abajo.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map(s => `
+      <tr id="svc-row-${s.id}">
+        <td><input class="editable editable-name" data-id="${s.id}" data-field="name" value="${escHtml(s.name)}" /></td>
+        <td><input class="editable editable-price" data-id="${s.id}" data-field="price" value="${escHtml(s.price)}" /></td>
+        <td><input class="editable editable-duration" type="number" data-id="${s.id}" data-field="duration" value="${s.duration}" min="5" step="5" /></td>
+        <td style="display:flex;gap:0.4rem;align-items:center">
+          <button class="btn-save" id="save-${s.id}" onclick="saveService(${s.id})">Guardar</button>
+          <button class="btn-icon btn-cancel" title="Eliminar" onclick="removeService(${s.id})">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Mostrar botón Guardar al editar cualquier campo
+    tbody.querySelectorAll('.editable').forEach(inp => {
+      inp.addEventListener('input', () => {
+        document.getElementById(`save-${inp.dataset.id}`)?.classList.add('visible');
+      });
+    });
+  }
+
+  function escHtml(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+  async function saveService(id) {
+    const row    = document.getElementById(`svc-row-${id}`);
+    const name   = row.querySelector('[data-field="name"]').value.trim();
+    const price  = row.querySelector('[data-field="price"]').value.trim();
+    const duration = row.querySelector('[data-field="duration"]').value;
+    if (!name || !price || !duration) { alert('Completá todos los campos'); return; }
+
+    const btn = document.getElementById(`save-${id}`);
+    btn.textContent = 'Guardando…';
+    await fetch(`${API}/services/${id}`, {
+      method: 'PATCH',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ name, price, duration })
+    });
+    btn.textContent = '✓ Guardado';
+    btn.style.borderColor = 'var(--teal)';
+    setTimeout(() => { btn.textContent = 'Guardar'; btn.classList.remove('visible'); }, 1800);
+  }
+
+  async function removeService(id) {
+    if (!confirm('¿Eliminar este servicio? Los turnos existentes no se verán afectados.')) return;
+    await fetch(`${API}/services/${id}`, { method: 'DELETE', headers: authHeader() });
+    document.getElementById(`svc-row-${id}`)?.remove();
+    const rows = document.querySelectorAll('#svc-tbody tr[id]').length;
+    document.getElementById('badge-servicios').textContent = `${rows} servicio${rows!==1?'s':''}`;
+  }
+
+  document.getElementById('btn-add-svc').addEventListener('click', async () => {
+    const name     = document.getElementById('svc-name').value.trim();
+    const price    = document.getElementById('svc-price').value.trim();
+    const duration = document.getElementById('svc-duration').value;
+    if (!name || !price || !duration) { alert('Completá todos los campos'); return; }
+
+    const btn = document.getElementById('btn-add-svc');
+    btn.disabled = true; btn.textContent = 'Agregando…';
+
+    await fetch(`${API}/services`, {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ name, price, duration })
+    });
+
+    document.getElementById('svc-name').value     = '';
+    document.getElementById('svc-price').value    = '';
+    document.getElementById('svc-duration').value = '';
+    btn.disabled = false; btn.textContent = 'Agregar';
+    loadServicios();
+  });
+
+  // ── Navigation ──────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`page-${name}`).classList.add('active');
+    document.getElementById(`nav-${name}`).classList.add('active');
+    if (name === 'hoy')       loadHoy();
+    if (name === 'proximos')  loadProximos();
+    if (name === 'servicios') loadServicios();
+    if (name === 'bloquear')  loadBlocked();
+    if (name === 'buscar')    initSearch();
+    if (name === 'config')    loadConfig();
+  }
+
+  // ── Hoy ─────────────────────────────────────────────────────
+  async function loadHoy() {
+    const today = new Date();
+    document.getElementById('today-sub').textContent = cap(
+      today.toLocaleDateString('es-AR',{ weekday:'long', day:'numeric', month:'long', year:'numeric' })
+    );
+
+    const [todayData, upcomingData] = await Promise.all([
+      fetch(`${API}/appointments/today`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]),
+      fetch(`${API}/appointments/upcoming`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]),
+    ]);
+
+    document.getElementById('stat-today').textContent = todayData.length;
+    document.getElementById('stat-total').textContent = upcomingData.length;
+    document.getElementById('badge-hoy').textContent  = `${todayData.length} turno${todayData.length !== 1 ? 's' : ''}`;
+
+    const endWeek = new Date(today);
+    endWeek.setDate(today.getDate() + (7 - today.getDay()));
+    const todayStr   = today.toISOString().split('T')[0];
+    const endWeekStr = endWeek.toISOString().split('T')[0];
+    document.getElementById('stat-week').textContent =
+      upcomingData.filter(a => a.date >= todayStr && a.date <= endWeekStr).length;
+
+    const list = document.getElementById('list-hoy');
+    list.innerHTML = todayData.length
+      ? todayData.map(a => apptHTML(a, false)).join('')
+      : emptyHTML('No hay turnos para hoy.');
+  }
+
+  // ── Próximos ─────────────────────────────────────────────────
+  async function loadProximos() {
+    const list = document.getElementById('list-proximos');
+    list.innerHTML = '<div class="shimmer-line"></div><div class="shimmer-line"></div><div class="shimmer-line"></div>';
+    const data = await fetch(`${API}/appointments/upcoming`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]);
+    if (!data.length) { list.innerHTML = emptyHTML('No hay turnos próximos.'); return; }
+
+    const byDate = {};
+    data.forEach(a => (byDate[a.date] = byDate[a.date]||[]).push(a));
+
+    list.innerHTML = Object.entries(byDate).map(([date, appts]) =>
+      `<div class="date-group-label">${cap(fmtFull(date))}</div>` +
+      appts.map(a => apptHTML(a, false)).join('')
+    ).join('');
+  }
+
+  // ── Cancel ───────────────────────────────────────────────────
+  async function cancelAppt(id) {
+    if (!confirm('¿Cancelar este turno?')) return;
+    await fetch(`${API}/appointments/${id}/cancel`, { method:'PATCH', headers: authHeader() });
+    document.getElementById(`appt-${id}`)?.remove();
+    // refresh stats
+    const todayItems = document.querySelectorAll('#list-hoy .appt-card').length;
+    document.getElementById('stat-today').textContent = todayItems;
+  }
+
+  // ── Blocked days ─────────────────────────────────────────────
+  async function loadBlocked() {
+    const list = document.getElementById('blocked-list');
+    list.innerHTML = '<div class="shimmer-line"></div>';
+    const data = await fetch(`${API}/blocked-days`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]);
+    document.getElementById('badge-blocked').textContent = `${data.length} día${data.length !== 1?'s':''}`;
+    if (!data.length) { list.innerHTML = emptyHTML('No hay días bloqueados.'); return; }
+    list.innerHTML = data.sort().map(date =>
+      `<div class="blocked-item" id="blocked-${date}">
+        <span class="blocked-date">${cap(fmtFull(date))}</span>
+        <button class="btn-unblock" onclick="unblock('${date}')">Desbloquear</button>
+      </div>`
+    ).join('');
+  }
+
+  document.getElementById('btn-block').addEventListener('click', async () => {
+    const date   = document.getElementById('inp-date').value;
+    const reason = document.getElementById('inp-reason').value.trim();
+    if (!date) { alert('Elegí una fecha.'); return; }
+    await fetch(`${API}/blocked-days`, {
+      method:'POST', headers: jsonHeaders(),
+      body: JSON.stringify({ date, reason })
+    });
+    document.getElementById('inp-date').value = '';
+    document.getElementById('inp-reason').value = '';
+    loadBlocked();
+  });
+
+  async function unblock(date) {
+    await fetch(`${API}/blocked-days/${date}`, { method:'DELETE', headers: authHeader() });
+    loadBlocked();
+  }
+
+  // ── Search ──────────────────────────────────────────────────
+  let _searchTimer = null;
+  let _searchInited = false;
+
+  function initSearch() {
+    if (_searchInited) return;
+    _searchInited = true;
+    document.getElementById('search-input').addEventListener('input', e => {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => runSearch(e.target.value.trim()), 320);
+    });
+  }
+
+  async function runSearch(q) {
+    const container = document.getElementById('search-results');
+    if (!q) { container.innerHTML = ''; return; }
+
+    container.innerHTML = '<div class="shimmer-line"></div><div class="shimmer-line"></div>';
+    const data = await fetch(`${API}/search?q=${encodeURIComponent(q)}`, { headers: authHeader() }).then(r=>r.json()).catch(()=>[]);
+
+    if (!data.length) {
+      container.innerHTML = emptyHTML('No se encontraron turnos para ese nombre.');
+      return;
+    }
+
+    const statusClass = { confirmed:'status-confirmed', cancelled:'status-cancelled', completed:'status-completed' };
+    const statusLabel = { confirmed:'Confirmado', cancelled:'Cancelado', completed:'Completado' };
+
+    container.innerHTML =
+      `<div class="search-results-label">${data.length} resultado${data.length!==1?'s':''}</div>` +
+      data.map(a => {
+        const t = a.time.slice(0,5);
+        const sc = statusClass[a.status] || 'status-confirmed';
+        const sl = statusLabel[a.status] || a.status;
+        const cancelBtn = a.status === 'confirmed'
+          ? `<button class="btn-icon btn-cancel" title="Cancelar" onclick="cancelApptSearch('${a.id}')">
+               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+             </button>`
+          : '';
+        return `<div class="appt-card" id="appt-${a.id}">
+          <div class="appt-time-badge">
+            <span class="appt-time-val">${t}</span>
+            <span class="appt-time-hs">hs</span>
+          </div>
+          <div class="appt-info">
+            <div class="appt-name">${escHtml(a.patient_name)}</div>
+            <div class="appt-service">${escHtml(a.service_name)}</div>
+            <div class="appt-date">${cap(fmtFull(a.date))}</div>
+          </div>
+          <span class="status-chip ${sc}">${sl}</span>
+          <div class="appt-actions">${cancelBtn}</div>
+        </div>`;
+      }).join('');
+  }
+
+  async function cancelApptSearch(id) {
+    if (!confirm('¿Cancelar este turno?')) return;
+    await fetch(`${API}/appointments/${id}/cancel`, { method:'PATCH', headers: authHeader() });
+    // Re-run the search to refresh the result
+    const q = document.getElementById('search-input').value.trim();
+    runSearch(q);
+  }
+
+  // ── Config ───────────────────────────────────────────────────
+  async function loadConfig() {
+    const data = await fetch(`${API}/clinic-info`, { headers: authHeader() }).then(r=>r.json()).catch(()=>null);
+    if (!data) return;
+    document.getElementById('cfg-nombre').value    = data.name          || '';
+    document.getElementById('cfg-matricula').value = data.matricula     || '';
+    document.getElementById('cfg-telefono').value  = data.telefono      || '';
+    document.getElementById('cfg-instagram').value = data.instagram     || '';
+    document.getElementById('cfg-ubicacion').value = data.ubicacion     || '';
+    document.getElementById('cfg-horarios').value  = data.horarios      || '';
+    document.getElementById('cfg-obras').value     = data.obras_sociales || '';
+    document.getElementById('cfg-pagos').value     = data.medios_pago   || '';
+  }
+
+  document.getElementById('btn-save-config').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-save-config');
+    btn.disabled = true; btn.textContent = 'Guardando…';
+
+    await fetch(`${API}/clinic-info`, {
+      method: 'PATCH',
+      headers: jsonHeaders(),
+      body: JSON.stringify({
+        nombre:         document.getElementById('cfg-nombre').value.trim(),
+        matricula:      document.getElementById('cfg-matricula').value.trim(),
+        telefono:       document.getElementById('cfg-telefono').value.trim(),
+        instagram:      document.getElementById('cfg-instagram').value.trim(),
+        ubicacion:      document.getElementById('cfg-ubicacion').value.trim(),
+        horarios:       document.getElementById('cfg-horarios').value.trim(),
+        obras_sociales: document.getElementById('cfg-obras').value.trim(),
+        medios_pago:    document.getElementById('cfg-pagos').value.trim(),
+      })
+    });
+
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+    const fb = document.getElementById('cfg-feedback');
+    fb.classList.add('show');
+    setTimeout(() => fb.classList.remove('show'), 3500);
+  });
+
+  document.getElementById('btn-trigger-reminders').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-trigger-reminders');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    try {
+      const res = await fetch(`${API}/reminders/trigger`, { method:'POST', headers: authHeader() }).then(r=>r.json());
+      btn.textContent = '✓ Enviados';
+    } catch {
+      btn.textContent = 'Error — reintentá';
+    }
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Enviar ahora'; }, 3000);
+  });
+
+  // ── Logout ───────────────────────────────────────────────────
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    await _sb.auth.signOut();
+    window.location.replace('/login.html?slug=rossetti');
+  });
+
+  // ── Init — esperar sesión antes de cargar datos ───────────────
+  _sb.auth.getSession().then(({ data }) => {
+    if (!data.session) { window.location.replace('/login.html?slug=rossetti'); return; }
+    _session = data.session;
+    loadHoy();
+  });
+</script>
+</body>
+</html>

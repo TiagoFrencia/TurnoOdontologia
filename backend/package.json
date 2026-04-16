@@ -1,0 +1,26 @@
+{
+  "name": "rossetti-bot-backend",
+  "version": "1.0.0",
+  "description": "Bot de turnos para Od. Ignacio Rossetti",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^0.7.0",
+    "@supabase/supabase-js": "^2.103.2",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "node-cron": "^4.2.1",
+    "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

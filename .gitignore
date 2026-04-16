@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.local
+*.log
+tests/screenshots/
+package-lock.json
+*.png
+*.jpg
+.playwright-cli/
+test-results/
+.agents/
+.claude/
+skills-lock.json
